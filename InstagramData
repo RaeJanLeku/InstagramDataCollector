@@ -1,0 +1,77 @@
+
+
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov 10 22:48:58 2022
+
+@author: mehme
+"""
+import random
+import pandas as pd
+import instaloader
+from openpyxl import Workbook
+import time
+#from instaloader import Instaloader, Post
+L = instaloader.Instaloader()
+profile = instaloader.Profile.from_username(L.context, "InstagramName")
+posts = profile.get_posts()
+L = instaloader.Instaloader()
+
+
+#excel
+wb = Workbook()
+ws = wb.active
+
+say = 1
+sabit = 1
+sayı = 1
+for post in posts:
+        likes = post.likes
+        date = post.date
+        yorum = post.comments
+        link = post.url
+        date2 = str(date)
+        likes2 = str(likes)
+        yorum2 = str(yorum)
+        sayı+=yorum
+        videomu = post.get_is_videos()
+        c = post.shortcode
+        link1 = "www.instagram.com/p/"+c+"/"
+        link2 = str(link1)
+        hashtag = post.caption_hashtags
+        hashtag2 = str(hashtag)
+        videomu2 = str(videomu)
+        yorumlar = post.caption
+        print(yorumlar)
+       
+        
+            
+       
+        if videomu2 == "[True]":
+            video = "Video"
+        else:
+            video = "Post"
+        
+        print("hashtag = ", hashtag)
+        print(say,"-Date =", date, "Comment Count=", yorum, "Like Count =",likes)
+        print("Link = ", "www.instagram.com/p/"+c+"/" , "Is Video?", videomu)
+        ws.cell(row=say, column=sabit).value = link2 # + date2 + likes2 + yorum2 + hashtag2
+        ws.cell(row=say,column =sabit+1).value = date2
+        ws.cell(row=say, column=sabit+2).value = likes2
+        ws.cell(row=say, column=sabit+3).value = yorum2
+        ws.cell(row=say, column=sabit+4).value = hashtag2
+        ws.cell(row=say, column=sabit+5).value = video
+        ws.cell(row=say, column=sabit+6).value = yorumlar
+        for i in range(sayı): 
+            #This lane if comments is a complaint,criticism,emoji, whatever comes to mind
+            #but it requires artificial intelligence to make it happen.
+            #i couldn't do that so there are random numbers
+            a = random.randrange(sayı) 
+            ws.cell(row=say, column=sabit+i+7).value = a
+            sayı-=a
+        say+=1
+        wb.save("YourChoice.xlsx")
+            
+            
+
+    #excel save
