@@ -1,77 +1,90 @@
-
-
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 10 22:48:58 2022
-
-@author: mehme
-"""
 import random
 import pandas as pd
 import instaloader
 from openpyxl import Workbook
-import time
-#from instaloader import Instaloader, Post
-L = instaloader.Instaloader()
-profile = instaloader.Profile.from_username(L.context, "InstagramName")
-posts = profile.get_posts()
-L = instaloader.Instaloader()
 
+def download_profile_media(profile):
+    L = instaloader.Instaloader()
 
-#excel
-wb = Workbook()
-ws = wb.active
+    try:
+        # Downloading profile photos
+        L.download_profile(profile_name=profile.username, profile_pic=True)
 
-say = 1
-sabit = 1
-sayı = 1
-for post in posts:
-        likes = post.likes
-        date = post.date
-        yorum = post.comments
-        link = post.url
-        date2 = str(date)
-        likes2 = str(likes)
-        yorum2 = str(yorum)
-        sayı+=yorum
-        videomu = post.get_is_videos()
-        c = post.shortcode
-        link1 = "www.instagram.com/p/"+c+"/"
-        link2 = str(link1)
-        hashtag = post.caption_hashtags
-        hashtag2 = str(hashtag)
-        videomu2 = str(videomu)
-        yorumlar = post.caption
-        print(yorumlar)
-       
+        # Downloading stories
+        stories = profile.get_stories()
+        for story in stories:
+            L.download_storyitem(story, target=profile.username)
+
+    except instaloader.exceptions.QueryReturnedNotFoundException:
+        print("Profile not found or is private.")
+
+def main():
+    L = instaloader.Instaloader()
+    profile_name = input("Instagram Name: ")
+
+    profile = instaloader.Profile.from_username(L.context, profile_name)
+    posts = profile.get_posts()
+
+    # Excel
+    wb = Workbook()
+    ws = wb.active
+    
+    count = 1
+    fixed = 1
+    comment_count_total = 1
+    
+    if profile.is_private:
+        print("This account is private.")
+        download_profile_media(profile)  # Download profile media for private accounts.
+    else:
+        want_to_download_photos = input("Want to download photos? Press Y or N: ").lower()
+        if want_to_download_photos == "y":
+            download_profile_media(profile)  # Download profile media for public accounts.
+
+        for post in posts:
+            likes = post.likes
+            date = post.date
+            comments = post.comments
+            link = post.url
+            date_str = str(date)
+            likes_str = str(likes)
+            comments_str = str(comments)
+            comment_count_total += comments
+            is_video = post.is_video
+            shortcode = post.shortcode
+            link1 = "www.instagram.com/p/" + shortcode + "/"
+            link2 = str(link1)
+            hashtags = post.caption_hashtags
+            hashtags_str = str(hashtags)
+            is_video_str = str(is_video)
+            caption = post.caption
+            print(caption)
         
-            
-       
-        if videomu2 == "[True]":
-            video = "Video"
-        else:
-            video = "Post"
+            if is_video_str == "True":
+                post_type = "Video"
+            else:
+                post_type = "Post"
         
-        print("hashtag = ", hashtag)
-        print(say,"-Date =", date, "Comment Count=", yorum, "Like Count =",likes)
-        print("Link = ", "www.instagram.com/p/"+c+"/" , "Is Video?", videomu)
-        ws.cell(row=say, column=sabit).value = link2 # + date2 + likes2 + yorum2 + hashtag2
-        ws.cell(row=say,column =sabit+1).value = date2
-        ws.cell(row=say, column=sabit+2).value = likes2
-        ws.cell(row=say, column=sabit+3).value = yorum2
-        ws.cell(row=say, column=sabit+4).value = hashtag2
-        ws.cell(row=say, column=sabit+5).value = video
-        ws.cell(row=say, column=sabit+6).value = yorumlar
-        for i in range(sayı): 
-            #This lane if comments is a complaint,criticism,emoji, whatever comes to mind
-            #but it requires artificial intelligence to make it happen.
-            #i couldn't do that so there are random numbers
-            a = random.randrange(sayı) 
-            ws.cell(row=say, column=sabit+i+7).value = a
-            sayı-=a
-        say+=1
-        wb.save("YourChoice.xlsx")
-            
-            
+            print("Hashtags =", hashtags)
+            print(count, "- Date =", date, "Comment Count =", comments, "Like Count =", likes)
+            print("Link =", "www.instagram.com/p/" + shortcode + "/", "Is Video?", is_video)
+        
+            ws.cell(row=count, column=fixed).value = link2
+            ws.cell(row=count, column=fixed + 1).value = date_str
+            ws.cell(row=count, column=fixed + 2).value = likes_str
+            ws.cell(row=count, column=fixed + 3).value = comments_str
+            ws.cell(row=count, column=fixed + 4).value = hashtags_str
+            ws.cell(row=count, column=fixed + 5).value = post_type
+            ws.cell(row=count, column=fixed + 6).value = caption
+        
+            for i in range(comment_count_total):
+                # This line generates random numbers for comments; you may want to modify it.
+                a = random.randrange(comment_count_total)
+                ws.cell(row=count, column=fixed + i + 7).value = a
+                comment_count_total -= a
+        
+            count += 1
+            wb.save(f"{profile_name}.xlsx")
 
-    #excel save
+if __name__ == "__main__":
+    main()
